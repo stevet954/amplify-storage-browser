@@ -101,3 +101,19 @@
 .view-metadata-btn:active {
   transform: translateY(1px);
 }
+
+.upload-confirm-container {
+  padding: 1.5rem;
+}
+
+.upload-confirm-container p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.upload-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}

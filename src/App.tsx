@@ -64,28 +64,34 @@ function App() {
   const { StorageBrowser } = createStorageBrowser({
     config: createAmplifyAuthAdapter(),
     elements: {
-      ActionStart: {
-        UploadFiles: ({ onStart, items }) => {
-          // Intercept upload to show metadata form
-          const handleUpload = () => {
-            if (items && items.length > 0) {
-              const firstItem = items[0];
-              if (firstItem.fileData && firstItem.key) {
-                setPendingUpload({
-                  file: firstItem.fileData,
-                  key: firstItem.key,
-                });
-                // Don't call onStart - we'll handle upload after metadata is provided
-                return;
-              }
+      ActionConfirm: {
+        UploadFiles: ({ onConfirm, onCancel, data }) => {
+          // Intercept the upload confirmation to show metadata form
+          const handleConfirm = () => {
+            if (data?.files && data.files.length > 0) {
+              const firstFile = data.files[0];
+              setPendingUpload({
+                file: firstFile.file,
+                key: firstFile.key,
+              });
+              onCancel(); // Close the default confirmation dialog
+            } else {
+              onConfirm();
             }
-            onStart();
           };
 
           return (
-            <button onClick={handleUpload} className="upload-button">
-              Upload Files
-            </button>
+            <div className="upload-confirm-container">
+              <p>Ready to upload {data?.files?.length || 0} file(s)?</p>
+              <div className="upload-confirm-actions">
+                <button onClick={onCancel} className="btn-cancel">
+                  Cancel
+                </button>
+                <button onClick={handleConfirm} className="btn-submit">
+                  Continue
+                </button>
+              </div>
+            </div>
           );
         },
       },
