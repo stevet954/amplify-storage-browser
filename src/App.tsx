@@ -25,6 +25,7 @@ function App() {
   const [uploadKey, setUploadKey] = useState(0);
   const [viewMetadataPath, setViewMetadataPath] = useState<string | null>(null);
   const [metadataInputPath, setMetadataInputPath] = useState<string>('');
+  const [currentPath, setCurrentPath] = useState<string>('public/');
 
   const handleMetadataSubmit = async (metadata: SecurityMetadata) => {
     if (!pendingUpload) return;
@@ -61,29 +62,23 @@ function App() {
     setPendingUpload(null);
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const key = `${currentPath}${file.name}`;
+
+      setPendingUpload({
+        file,
+        key,
+      });
+    }
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
   const { StorageBrowser } = createStorageBrowser({
     config: createAmplifyAuthAdapter(),
-    actions: {
-      onUpload: async ({ files, data }) => {
-        // Intercept upload to show metadata form instead
-        console.log('onUpload triggered!', { files, data });
-
-        if (files && files.length > 0) {
-          const file = files[0];
-          const key = data?.key || `${file.name}`;
-
-          console.log('Setting pending upload:', { file, key });
-
-          setPendingUpload({
-            file,
-            key,
-          });
-
-          // Return false to prevent default upload
-          return false;
-        }
-      },
-    },
   });
 
   const handleViewMetadata = () => {
@@ -121,6 +116,20 @@ function App() {
                 View Metadata
               </button>
             </div>
+          </div>
+
+          <div className="custom-upload-section">
+            <h4>Upload File with Security Metadata</h4>
+            <p>Click the button below to upload a file. You'll be prompted to enter security metadata.</p>
+            <input
+              type="file"
+              id="custom-file-input"
+              style={{ display: 'none' }}
+              onChange={handleFileSelect}
+            />
+            <label htmlFor="custom-file-input" className="custom-upload-btn">
+              📁 Select File to Upload
+            </label>
           </div>
 
           <StorageBrowser key={uploadKey} />
