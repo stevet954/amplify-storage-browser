@@ -66,9 +66,13 @@ function App() {
     actions: {
       onUpload: async ({ files, data }) => {
         // Intercept upload to show metadata form instead
+        console.log('onUpload triggered!', { files, data });
+
         if (files && files.length > 0) {
           const file = files[0];
           const key = data?.key || `${file.name}`;
+
+          console.log('Setting pending upload:', { file, key });
 
           setPendingUpload({
             file,
