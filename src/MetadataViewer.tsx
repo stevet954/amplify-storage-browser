@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getProperties } from 'aws-amplify/storage';
+import { S3Client, GetObjectTaggingCommand } from '@aws-sdk/client-s3';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import outputs from '../amplify_outputs.json';
 import './MetadataViewer.css';
 
 interface MetadataViewerProps {
@@ -56,14 +58,55 @@ export function MetadataViewer({ path, onClose }: MetadataViewerProps) {
         setLoading(true);
         setError(null);
 
-        const properties = await getProperties({
-          path,
+        // Get credentials from Amplify auth session
+        const { credentials } = await fetchAuthSession();
+
+        if (!credentials) {
+          throw new Error('No credentials available');
+        }
+
+        // Create S3 client with Amplify credentials
+        const s3Client = new S3Client({
+          region: outputs.storage.aws_region,
+          credentials,
         });
 
-        setMetadata(properties.metadata as FileMetadata);
+        // Get the bucket name from Amplify outputs
+        const bucketName = outputs.storage.bucket_name;
+
+        // Fetch object tags from S3
+        const getTagsCommand = new GetObjectTaggingCommand({
+          Bucket: bucketName,
+          Key: path,
+        });
+
+        const tagsResponse = await s3Client.send(getTagsCommand);
+
+        // Convert tags array to metadata object
+        const metadataFromTags: FileMetadata = {};
+        if (tagsResponse.TagSet) {
+          for (const tag of tagsResponse.TagSet) {
+            if (tag.Key && tag.Value) {
+              metadataFromTags[tag.Key as keyof FileMetadata] = tag.Value;
+            }
+          }
+        }
+
+        // Check if we have any metadata
+        if (Object.keys(metadataFromTags).length > 0) {
+          setMetadata(metadataFromTags);
+        } else {
+          setMetadata(null);
+        }
       } catch (err) {
         console.error('Error fetching metadata:', err);
-        setError('Failed to load metadata');
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error('Error details:', {
+          path,
+          bucket: outputs.storage.bucket_name,
+          errorMessage,
+        });
+        setError(`Failed to load metadata: ${errorMessage}`);
       } finally {
         setLoading(false);
       }

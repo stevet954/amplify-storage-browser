@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './MetadataForm.css';
 
 export interface SecurityMetadata {
@@ -68,6 +68,13 @@ export function MetadataForm({ onSubmit, onCancel, fileName }: MetadataFormProps
   const [ldc, setLdc] = useState<string>('NONE');
   const [relTo, setRelTo] = useState<string[]>([]);
   const [ownerProducer, setOwnerProducer] = useState<string>('USA-DOD-JPO');
+
+  // Clear Releasable To selections when NOFORN is selected
+  useEffect(() => {
+    if (ldc === 'NOFORN' && relTo.length > 0) {
+      setRelTo([]);
+    }
+  }, [ldc]);
 
   const handleRelToChange = (value: string) => {
     setRelTo((prev) =>
@@ -157,17 +164,26 @@ export function MetadataForm({ onSubmit, onCancel, fileName }: MetadataFormProps
 
           {/* Releasable To (Multi-select) */}
           <div className="form-group">
-            <label>
+            <label className={ldc === 'NOFORN' ? 'disabled-label' : ''}>
               Releasable To (F-35 Partners)
             </label>
-            <div className="multi-select-container">
+            {ldc === 'NOFORN' && (
+              <div className="warning-message">
+                NOFORN restriction prevents selection of foreign countries
+              </div>
+            )}
+            <div className={`multi-select-container ${ldc === 'NOFORN' ? 'disabled-container' : ''}`}>
               {REL_TO_OPTIONS.map((option) => (
-                <label key={option.value} className="checkbox-label">
+                <label
+                  key={option.value}
+                  className={`checkbox-label ${ldc === 'NOFORN' ? 'disabled-checkbox' : ''}`}
+                >
                   <input
                     type="checkbox"
                     value={option.value}
                     checked={relTo.includes(option.value)}
                     onChange={() => handleRelToChange(option.value)}
+                    disabled={ldc === 'NOFORN'}
                   />
                   <span>{option.label}</span>
                 </label>
