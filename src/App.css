@@ -9,3 +9,156 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.upload-button {
+  padding: 0.5rem 1rem;
+  background-color: #047d95;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.upload-button:hover {
+  background-color: #036074;
+}
+
+.upload-button:active {
+  transform: translateY(1px);
+}
+
+.info-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-banner h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+}
+
+.info-banner p {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.metadata-viewer-trigger {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.metadata-viewer-trigger h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.metadata-input-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.metadata-path-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.metadata-path-input:focus {
+  outline: none;
+  border-color: #047d95;
+}
+
+.view-metadata-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: #047d95;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.view-metadata-btn:hover {
+  background-color: #036074;
+}
+
+.view-metadata-btn:active {
+  transform: translateY(1px);
+}
+
+.upload-confirm-container {
+  padding: 1.5rem;
+}
+
+.upload-confirm-container p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.upload-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.custom-upload-section {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.custom-upload-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.custom-upload-section p {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.custom-upload-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.custom-upload-btn:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.custom-upload-btn:active {
+  transform: translateY(0);
+}
