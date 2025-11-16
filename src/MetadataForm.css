@@ -151,3 +151,40 @@
 .btn-submit:active {
   transform: translateY(1px);
 }
+
+/* Disabled state styles for NOFORN validation */
+.disabled-label {
+  opacity: 0.6;
+  color: #999;
+}
+
+.warning-message {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.disabled-container {
+  opacity: 0.6;
+  background-color: #e9ecef;
+}
+
+.disabled-checkbox {
+  cursor: not-allowed;
+}
+
+.disabled-checkbox:hover {
+  background-color: transparent;
+}
+
+.disabled-checkbox input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
+.disabled-checkbox span {
+  color: #999;
+}

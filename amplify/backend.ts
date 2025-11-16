@@ -13,31 +13,29 @@ const backend = defineBackend({
   applyMetadataTags,
 });
 
-// Configure S3 event notification to trigger Lambda on object creation
-const { cfnBucket } = backend.storage.resources.cfnResources;
-const { cfnFunction } = backend.applyMetadataTags.resources.cfnResources;
+// NOTE: S3 event notification and Lambda permissions were configured in a previous deployment
+// and are already active. We don't reconfigure them here to avoid circular dependencies.
 
-// Grant Lambda permission to read/tag S3 objects
-backend.applyMetadataTags.resources.lambda.addToRolePolicy(
-  new (await import('aws-cdk-lib/aws-iam')).PolicyStatement({
-    actions: ['s3:GetObject', 's3:GetObjectTagging', 's3:PutObjectTagging', 's3:GetObjectAttributes'],
-    resources: [`${cfnBucket.attrArn}/*`],
-  })
-);
+// Grant authenticated users permission to read object tags
+const { CfnPolicy } = await import('aws-cdk-lib/aws-iam');
+const { Stack } = await import('aws-cdk-lib');
 
-// Add S3 event notification for object creation
-cfnBucket.notificationConfiguration = {
-  lambdaConfigurations: [
-    {
-      event: 's3:ObjectCreated:*',
-      function: cfnFunction.attrArn,
-    },
+const authStack = Stack.of(backend.auth.resources.authenticatedUserIamRole);
+
+new CfnPolicy(authStack, 'GetObjectTaggingPolicy', {
+  policyName: 'GetObjectTaggingPolicy',
+  policyDocument: {
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Action: 's3:GetObjectTagging',
+        Resource: 'arn:aws:s3:::amplify-*/*',
+      },
+    ],
+  },
+  roles: [
+    backend.auth.resources.authenticatedUserIamRole.roleName,
+    backend.auth.resources.unauthenticatedUserIamRole.roleName,
   ],
-};
-
-// Grant S3 permission to invoke the Lambda function
-backend.applyMetadataTags.resources.lambda.addPermission('AllowS3Invocation', {
-  action: 'lambda:InvokeFunction',
-  principal: new (await import('aws-cdk-lib/aws-iam')).ServicePrincipal('s3.amazonaws.com'),
-  sourceArn: cfnBucket.attrArn,
 });

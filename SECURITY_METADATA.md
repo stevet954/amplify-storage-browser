@@ -37,7 +37,8 @@ When uploading files, users are prompted to provide the following security metad
 - **Releasable To (F-35 Partners)**
   - Multi-select checkbox list of F-35 partner nations
   - Stored as comma-separated ISO 3166-1 alpha-3 country codes
-  - Includes: USA, GBR, ITA, NLD, NOR, AUS, CAN, DNK, ISR, JPN, KOR, BEL, POL, SGP, FIN, CHE, DEU, CZE, GRC, ROU
+  - Includes: GBR, ITA, NLD, NOR, AUS, CAN, DNK, ISR, JPN, KOR, BEL, POL, SGP, FIN, CHE, DEU, CZE, GRC, ROU
+  - **NOFORN Validation:** When NOFORN is selected for Limited Dissemination Control, this field is automatically disabled and cleared, as foreign release is prohibited
 
 ### 2. **Automatic S3 Tagging**
 
@@ -60,6 +61,12 @@ Users can view security metadata for any uploaded file by:
 2. Clicking "View Metadata"
 3. A modal displays all security metadata associated with the file
 
+**Technical Details:**
+- Retrieves metadata from **S3 Object Tags** (persisted by Lambda)
+- Uses AWS SDK's `GetObjectTaggingCommand` directly
+- Converts tag format back to human-readable display
+- Requires `s3:GetObjectTagging` IAM permission for users
+
 ## Architecture
 
 ### Components
@@ -77,7 +84,7 @@ src/
 
 ```
 amplify/
-├── backend.ts                           # Backend configuration with Lambda integration
+├── backend.ts                           # Backend configuration with IAM permissions
 └── functions/
     └── apply-metadata-tags/
         ├── resource.ts                  # Lambda function definition
@@ -85,18 +92,26 @@ amplify/
         └── package.json                 # Lambda dependencies
 ```
 
+### Scripts
+
+```
+scripts/
+└── setup-lambda-triggers.sh             # Post-deployment automation script
+```
+
 ### Data Flow
 
 1. **Upload Process:**
    ```
    User selects file → Metadata form appears → User fills security fields →
-   File uploaded with metadata → Lambda triggered → S3 tags applied
+   (NOFORN validation applied) → File uploaded with metadata →
+   Lambda triggered → S3 tags applied
    ```
 
 2. **View Process:**
    ```
    User enters file path → Click "View Metadata" →
-   Fetch object properties → Display security metadata
+   Fetch S3 object tags via GetObjectTaggingCommand → Display security metadata
    ```
 
 ## Storage Format
@@ -190,13 +205,42 @@ The Storage Browser maintains the existing access patterns:
 
 ## Deployment
 
-The security metadata feature is deployed automatically when the Amplify sandbox is running:
+The security metadata feature requires a two-step deployment process due to CloudFormation circular dependency constraints:
+
+### Step 1: Deploy Amplify Backend
 
 ```bash
 npx ampx sandbox
 ```
 
-Changes to the Lambda function or backend configuration will be automatically deployed to your sandbox environment.
+This deploys:
+- Storage buckets with access rules
+- Lambda function (without S3 trigger)
+- IAM permissions for users to read object tags
+
+### Step 2: Configure Lambda Triggers
+
+```bash
+npm run setup-lambda
+```
+
+This script automatically:
+- Grants S3 permission to invoke the Lambda
+- Configures S3 bucket notification for ObjectCreated events
+- Adds IAM permissions for Lambda to read/write S3 tags
+
+**Note:** The post-deployment script requires `jq` to be installed:
+```bash
+brew install jq  # macOS
+```
+
+### Why Two Steps?
+
+Due to CloudFormation circular dependencies between nested stacks:
+- Storage stack needs to reference Lambda ARN (for S3 notification)
+- Function stack needs to reference Bucket ARN (for IAM permissions)
+
+This creates a circular dependency that CloudFormation cannot resolve. The workaround is to configure the S3 notification separately after deployment.
 
 ## Development
 
@@ -223,6 +267,13 @@ To add or modify security metadata fields:
 3. Update `amplify/functions/apply-metadata-tags/handler.ts` - Add tag mapping
 4. Test the changes in your sandbox environment
 
+## Known Limitations
+
+1. **Post-Deployment Script Required** - S3 triggers must be configured after each deployment due to CloudFormation circular dependencies
+2. **Metadata Not Retroactive** - Only files uploaded after Lambda trigger configuration will have S3 tags
+3. **No Metadata Editing** - Once uploaded, metadata cannot be modified through the UI
+4. **Single File Upload** - Currently supports one file at a time with metadata
+
 ## Future Enhancements
 
 Potential improvements for production deployment:
@@ -235,6 +286,7 @@ Potential improvements for production deployment:
 6. **Data Loss Prevention** - Prevent upload of improperly classified files
 7. **Integration with DoD PKI** - Certificate-based authentication
 8. **STIG Compliance** - Ensure all security configurations meet STIG requirements
+9. **Resolve CloudFormation Circular Dependencies** - Use CDK custom resources or alternative architectures
 
 ## Support
 
